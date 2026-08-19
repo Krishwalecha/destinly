@@ -1,0 +1,28 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Backend API for Destinly, handling URL shortening, authentication, redirects, analytics, and data persistence with Node.js, Express, and MongoDB.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Krishwalecha/destinly.git"
+  },
+  "author": "Krish Walecha",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Krishwalecha/destinly/issues"
+  },
+  "homepage": "https://github.com/Krishwalecha/destinly#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.9.3",
+    "nodemon": "^3.1.14"
+  },
+  "type": "module"
+}
