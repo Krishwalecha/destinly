@@ -155,6 +155,22 @@ const updateUrl = asyncHandler(async (req, res) => {
     );
   }
 
+  if (url.expiresAt < new Date()) {
+    url.isActive = false;
+
+    await url.save();
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          url,
+          "URL has already expired based on the new expiration date and was deactivated",
+        ),
+      );
+  }
+
   await url.save();
 
   return res
