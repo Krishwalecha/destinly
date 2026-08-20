@@ -25,7 +25,7 @@ const urlSchema = new mongoose.Schema(
     },
     expiresAt: {
       type: Date,
-      default: null,
+      default: () => new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
     },
     isActive: {
       type: Boolean,
