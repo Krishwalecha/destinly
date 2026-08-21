@@ -9,4 +9,6 @@ export const reservedCustomAliases = [
   "admin",
   "dashboard",
   "urls",
+  "stats",
+  "url",
 ];
