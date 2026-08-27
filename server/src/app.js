@@ -7,6 +7,7 @@ import UrlRouter from "./routes/urls.route.js";
 
 const app = express();
 
+app.set("trust proxy", 1);
 app.use(cookieParser());
 app.use(cors(process.env.CORS_ORIGIN));
 app.use(express.json({ limit: "16kb" }));

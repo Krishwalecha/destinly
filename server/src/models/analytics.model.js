@@ -50,4 +50,4 @@ const analyticsSchema = new mongoose.Schema({
 
 analyticsSchema.index({ urlId: 1, date: 1 }, { unique: true });
 
-export default mongoose.model("Analytics", analyticsSchema);
+export const Analytics = mongoose.model("Analytics", analyticsSchema);

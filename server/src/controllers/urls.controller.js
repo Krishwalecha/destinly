@@ -4,6 +4,8 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { reservedCustomAliases } from "../constants.js";
 import mongoose from "mongoose";
+import { Analytics } from "../models/analytics.model.js";
+import { UAParser } from "ua-parser-js";
 
 const createShortUrl = asyncHandler(async (req, res) => {
   const { userId: user } = req.user;
@@ -62,11 +64,7 @@ const redirectUrl = asyncHandler(async (req, res) => {
     throw new ApiError(410, "URL has expired");
   }
 
-  url.clickCount += 1;
-
-  await url.save({
-    validateBeforeSave: false,
-  });
+  updateAnalytics(req, url).catch(console.error); // update analytics asynchronously
 
   return res.redirect(url.originalUrl);
 });
@@ -327,6 +325,55 @@ const getUrlStats = asyncHandler(async (req, res) => {
     ),
   );
 });
+
+const updateAnalytics = async (req, url) => {
+  const urlId = url._id;
+
+  const ip = req.ip;
+  const response = await fetch(
+    `http://ip-api.com/json/${ip}?fields=status,country`,
+  );
+  const data = response.ok ? await response.json() : null;
+  const country = data?.status === "success" ? data.country : "Unknown";
+
+  const userAgent = req.headers["user-agent"];
+  const parsedUserAgent = UAParser(userAgent);
+
+  const os = parsedUserAgent.os.name || "Unknown";
+
+  let browser = parsedUserAgent.browser.name || "Unknown";
+  browser = browser.includes("Mobile Safari") ? "Safari" : browser;
+
+  const deviceType = parsedUserAgent.device.type || "desktop";
+
+  const referrer = req.headers["referer"]
+    ? new URL(req.headers["referer"]).hostname.replace(/^www\./, "")
+    : "direct";
+
+  const date = new Date();
+  date.setUTCHours(0, 0, 0, 0);
+
+  await Analytics.findOneAndUpdate(
+    { urlId, date },
+    {
+      $inc: {
+        clicks: 1,
+        [`os.${os}`]: 1,
+        [`referrers.${referrer.replace(/\./g, "_")}`]: 1,
+        [`browsers.${browser}`]: 1,
+        [`countries.${country}`]: 1,
+        [`deviceTypes.${deviceType}`]: 1,
+      },
+    },
+    { upsert: true },
+  );
+
+  url.clickCount += 1;
+
+  await url.save({
+    validateBeforeSave: false,
+  });
+};
 
 const validateUrl = (url) => {
   if (!url?.trim()) {
