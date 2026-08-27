@@ -23,6 +23,7 @@ const createShortUrl = asyncHandler(async (req, res) => {
     user,
     originalUrl: normalizedUrl,
     shortCode,
+    expiresIn,
     expiresAt,
     isActive: true,
     customAlias: normalizedCustomAlias,
@@ -170,6 +171,7 @@ const updateUrl = asyncHandler(async (req, res) => {
       throw new ApiError(400, "Expiration Days must be a positive integer");
     }
 
+    url.expiresIn = expiresIn;
     url.expiresAt = new Date(
       url.createdAt.getTime() + expiresIn * 24 * 60 * 60 * 1000,
     );

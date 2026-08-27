@@ -25,7 +25,7 @@ const urlSchema = new mongoose.Schema(
     },
     expiresAt: {
       type: Date,
-      default: () => new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+      required: true,
     },
     isActive: {
       type: Boolean,
@@ -34,6 +34,12 @@ const urlSchema = new mongoose.Schema(
     clickCount: {
       type: Number,
       default: 0,
+    },
+    expiresIn: {
+      type: Number,
+      required: true,
+      min: 1,
+      default: 90,
     },
   },
   { timestamps: true },
