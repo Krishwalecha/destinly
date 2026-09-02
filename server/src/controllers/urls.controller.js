@@ -593,6 +593,191 @@ const getUrlAnalytics = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, analytics));
 });
 
+const getUserAnalytics = asyncHandler(async (req, res) => {
+  const userId = new mongoose.Types.ObjectId(req.user.userId);
+  const startDate = req.query?.startDate ? new Date(req.query.startDate) : null;
+  const endDate = req.query?.endDate ? new Date(req.query.endDate) : null;
+
+  const urls = await Url.find({ user: userId }, { _id: 1 });
+
+  const urlIds = urls.map((url) => url._id);
+
+  const filter = {
+    urlId: { $in: urlIds },
+  };
+
+  if (startDate) filter.date = { $gte: startDate };
+  if (endDate) filter.date = { ...filter.date, $lte: endDate };
+
+  const analytics = await Analytics.aggregate([
+    { $match: filter },
+    {
+      $facet: {
+        summary: [
+          {
+            $group: {
+              _id: null,
+              totalUrls: { $sum: 1 },
+              totalClicks: { $sum: "$clicks" },
+            },
+          },
+          { $project: { _id: 0 } },
+        ],
+        clicksOverTime: [{ $project: { _id: 0, date: 1, clicks: 1 } }],
+        os: [
+          {
+            $project: {
+              _id: 0,
+              os: { $objectToArray: "$os" },
+            },
+          },
+          { $unwind: "$os" },
+          {
+            $group: {
+              _id: "$os.k",
+              count: { $sum: "$os.v" },
+            },
+          },
+          {
+            $group: { _id: null, data: { $push: { k: "$_id", v: "$count" } } },
+          },
+          {
+            $project: { _id: 0, data: { $arrayToObject: "$data" } },
+          },
+        ],
+        browsers: [
+          {
+            $project: {
+              _id: 0,
+              browsers: { $objectToArray: "$browsers" },
+            },
+          },
+          { $unwind: "$browsers" },
+          {
+            $group: {
+              _id: "$browsers.k",
+              count: { $sum: "$browsers.v" },
+            },
+          },
+          {
+            $group: { _id: null, data: { $push: { k: "$_id", v: "$count" } } },
+          },
+          {
+            $project: { _id: 0, data: { $arrayToObject: "$data" } },
+          },
+        ],
+        referrers: [
+          {
+            $project: {
+              _id: 0,
+              referrers: { $objectToArray: "$referrers" },
+            },
+          },
+          { $unwind: "$referrers" },
+          {
+            $group: {
+              _id: "$referrers.k",
+              count: { $sum: "$referrers.v" },
+            },
+          },
+          {
+            $group: { _id: null, data: { $push: { k: "$_id", v: "$count" } } },
+          },
+          {
+            $project: { _id: 0, data: { $arrayToObject: "$data" } },
+          },
+        ],
+        countries: [
+          {
+            $project: {
+              _id: 0,
+              countries: { $objectToArray: "$countries" },
+            },
+          },
+          { $unwind: "$countries" },
+          {
+            $group: {
+              _id: "$countries.k",
+              count: { $sum: "$countries.v" },
+            },
+          },
+          {
+            $group: { _id: null, data: { $push: { k: "$_id", v: "$count" } } },
+          },
+          {
+            $project: { _id: 0, data: { $arrayToObject: "$data" } },
+          },
+        ],
+        deviceTypes: [
+          {
+            $project: {
+              _id: 0,
+              deviceTypes: { $objectToArray: "$deviceTypes" },
+            },
+          },
+          { $unwind: "$deviceTypes" },
+          {
+            $group: {
+              _id: "$deviceTypes.k",
+              count: { $sum: "$deviceTypes.v" },
+            },
+          },
+          {
+            $group: { _id: null, data: { $push: { k: "$_id", v: "$count" } } },
+          },
+          {
+            $project: { _id: 0, data: { $arrayToObject: "$data" } },
+          },
+        ],
+        topUrls: [
+          {
+            $group: {
+              _id: "$urlId",
+              clicks: { $sum: "$clicks" },
+            },
+          },
+          { $sort: { clicks: -1 } },
+          { $limit: 5 },
+          {
+            $lookup: {
+              from: "urls",
+              localField: "_id",
+              foreignField: "_id",
+              as: "url",
+            },
+          },
+          { $unwind: "$url" },
+          {
+            $project: {
+              _id: 0,
+              urlId: "$_id",
+              clicks: 1,
+              shortCode: "$url.shortCode",
+              originalUrl: "$url.originalUrl",
+              customAlias: "$url.customAlias",
+            },
+          },
+        ],
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        summary: { $arrayElemAt: ["$summary", 0] },
+        clicksOverTime: 1,
+        os: { $arrayElemAt: ["$os.data", 0] },
+        browsers: { $arrayElemAt: ["$browsers.data", 0] },
+        referrers: { $arrayElemAt: ["$referrers.data", 0] },
+        countries: { $arrayElemAt: ["$countries.data", 0] },
+        deviceTypes: { $arrayElemAt: ["$deviceTypes.data", 0] },
+        topUrls: 1,
+      },
+    },
+  ]);
+
+  res.status(200).json(new ApiResponse(200, analytics[0]));
+});
+
 const validateUrl = (url) => {
   if (!url?.trim()) {
     throw new ApiError(400, "Original URL is required");
@@ -674,4 +859,5 @@ export {
   deleteShortUrl,
   getUrlStats,
   getUrlAnalytics,
+  getUserAnalytics,
 };
