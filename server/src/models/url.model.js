@@ -41,6 +41,10 @@ const urlSchema = new mongoose.Schema(
       min: 1,
       default: 90,
     },
+    maxClicks: {
+      type: Number,
+      default: -1
+    }
   },
   { timestamps: true },
 );

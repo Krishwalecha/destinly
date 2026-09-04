@@ -1,4 +1,4 @@
-export const DATABASE_NAME = "destinly";
+export const DATABASE_NAME = "shrinkr";
 export const reservedCustomAliases = [
   "api",
   "auth",

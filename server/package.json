@@ -1,7 +1,7 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "Backend API for Destinly, handling URL shortening, authentication, redirects, analytics, and data persistence with Node.js, Express, and MongoDB.",
+  "description": "Backend API for Shrinkr, handling URL shortening, authentication, redirects, analytics, and data persistence with Node.js, Express, and MongoDB.",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/index.js",
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Krishwalecha/destinly.git"
+    "url": "git+https://github.com/Krishwalecha/shrinkr.git"
   },
   "author": "Krish Walecha",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Krishwalecha/destinly/issues"
+    "url": "https://github.com/Krishwalecha/shrinkr/issues"
   },
-  "homepage": "https://github.com/Krishwalecha/destinly#readme",
+  "homepage": "https://github.com/Krishwalecha/shrinkr#readme",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",

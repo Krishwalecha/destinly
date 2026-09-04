@@ -9,7 +9,12 @@ import { UAParser } from "ua-parser-js";
 
 const createShortUrl = asyncHandler(async (req, res) => {
   const { userId: user } = req.user;
-  const { originalUrl, expiresIn = 90, customAlias } = req.body;
+  const {
+    originalUrl,
+    expiresIn = 90,
+    customAlias,
+    maxClicks = -1,
+  } = req.body;
 
   const normalizedUrl = validateUrl(originalUrl);
 
@@ -17,9 +22,19 @@ const createShortUrl = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Expiration Days must be a positive integer");
   }
 
+  if (!Number.isInteger(maxClicks) || maxClicks < -1 || maxClicks === 0) {
+    throw new ApiError(
+      400,
+      "Max clicks must be -1 or a positive integer",
+    );
+  }
+
   const normalizedCustomAlias = await validateCustomAlias(customAlias);
   const shortCode = await generateShortCode();
-  const expiresAt = new Date(Date.now() + expiresIn * 24 * 60 * 60 * 1000);
+
+  const expiresAt = new Date(
+    Date.now() + expiresIn * 24 * 60 * 60 * 1000,
+  );
 
   const url = await Url.create({
     user,
@@ -29,6 +44,7 @@ const createShortUrl = asyncHandler(async (req, res) => {
     expiresAt,
     isActive: true,
     customAlias: normalizedCustomAlias,
+    maxClicks,
   });
 
   return res
@@ -64,7 +80,11 @@ const redirectUrl = asyncHandler(async (req, res) => {
     throw new ApiError(410, "URL has expired");
   }
 
-  updateAnalytics(req, url).catch(console.error); // update analytics asynchronously
+  if (url.maxClicks !== -1 && url.clickCount >= url.maxClicks) {
+    throw new ApiError(410, "Max clicks reached");
+  }
+
+  updateAnalytics(req, url).catch(console.error);
 
   return res.redirect(url.originalUrl);
 });
