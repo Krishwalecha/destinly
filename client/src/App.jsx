@@ -1,5 +1,12 @@
+import { Route, Routes } from "react-router-dom";
+import Landing from "./pages/Landing.jsx";
+
 const App = () => {
-  return <div>Destinly - URL Shortener and Analytics Platform</div>;
+  return (
+    <Routes>
+      <Route path="/" element={<Landing />} />
+    </Routes>
+  );
 };
 
 export default App;
