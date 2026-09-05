@@ -1,5 +1,5 @@
 import Navbar from "../components/landing/Navbar.jsx";
-import heroBg from "../assets/hero-bg-image.png";
+import heroBg from "../assets/hero-bg-image.webp";
 import Hero from "../components/landing/Hero.jsx";
 
 const Landing = () => {

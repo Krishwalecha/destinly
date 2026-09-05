@@ -25,12 +25,34 @@ const registerUser = asyncHandler(async (req, res) => {
   const normalizedEmail = email.trim().toLowerCase();
   const normalizedName = name.trim();
 
-  const existingUser = await User.findOne({
-    $or: [{ username: normalizedUsername }, { email: normalizedEmail }],
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const usernameRegex = /^[a-z0-9_]+$/;
+
+  if (!emailRegex.test(normalizedEmail)) {
+    throw new ApiError(400, "Please enter a valid email address");
+  }
+
+  if (!usernameRegex.test(normalizedUsername)) {
+    throw new ApiError(
+      400,
+      "Username can only contain letters, numbers, and underscores",
+    );
+  }
+
+  const existingUsername = await User.findOne({
+    username: normalizedUsername,
   });
 
-  if (existingUser) {
-    throw new ApiError(400, "User already exists");
+  if (existingUsername) {
+    throw new ApiError(400, "Username is already taken");
+  }
+
+  const existingEmail = await User.findOne({
+    email: normalizedEmail,
+  });
+
+  if (existingEmail) {
+    throw new ApiError(400, "Email is already registered");
   }
 
   const user = await User.create({

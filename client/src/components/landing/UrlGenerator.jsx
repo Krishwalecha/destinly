@@ -37,9 +37,7 @@ const UrlGenerator = () => {
           />
         </div>
 
-        <button
-          className="flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-white px-5 py-3 font-medium text-[#3262DA] transition hover:bg-white/90"
-        >
+        <button className="flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-white px-5 py-3 font-medium text-[#3262DA] transition hover:bg-white/90">
           Shorten Link
           <ArrowRight size={17} strokeWidth={1.5} />
         </button>
@@ -151,13 +149,10 @@ const UrlGenerator = () => {
       )}
 
       {/* Bottom row */}
+      {/* Bottom row */}
       <div className="mt-4 flex flex-col gap-3 border-t border-white/10 pt-3 md:flex-row md:items-center md:justify-between md:border-t-0 md:pt-0">
-        <div className="flex items-start gap-2 text-left text-xs text-white/60 sm:text-sm">
-          <ShieldCheck
-            size={19}
-            strokeWidth={1.5}
-            className="mt-0.5 shrink-0"
-          />
+        <div className="flex items-center gap-2 text-left text-xs leading-normal text-white/60 sm:text-sm">
+          <ShieldCheck size={19} strokeWidth={1.5} className="shrink-0" />
 
           <p>
             By using shrinkr.link, you agree to our{" "}
@@ -181,7 +176,7 @@ const UrlGenerator = () => {
         <button
           type="button"
           onClick={() => setShowAdvanced((prev) => !prev)}
-          className="flex shrink-0 cursor-pointer items-center gap-2 self-end text-sm text-white/70 transition hover:text-white"
+          className="flex shrink-0 cursor-pointer items-center gap-2 self-end text-sm text-white/70 transition hover:text-white md:self-auto"
         >
           {showAdvanced ? "Hide options" : "Advanced options"}
 

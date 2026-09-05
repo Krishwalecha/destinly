@@ -1,37 +1,48 @@
-import { User } from "lucide-react";
+import { User, LayoutDashboard } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const Navbar = () => {
+  const { user } = useAuth();
+
   return (
     <div className="mx-auto max-w-5xl px-6 pt-6">
       <nav className="flex items-center justify-between rounded-full border border-white/20 bg-white/10 px-5 py-3 text-white backdrop-blur-sm">
-        
         <div className="cursor-pointer text-xl font-semibold tracking-tight">
           shrinkr.
         </div>
 
         <div className="hidden items-center gap-7 text-sm text-white/80 md:flex">
-          <a className="transition hover:text-white" href="#">
+          <Link className="transition hover:text-white" to="#">
             Features
-          </a>
-          <a className="transition hover:text-white" href="#">
+          </Link>
+          <Link className="transition hover:text-white" to="#">
             Pricing
-          </a>
-          <a className="transition hover:text-white" href="#">
+          </Link>
+          <Link className="transition hover:text-white" to="#">
             Developers
-          </a>
-          <a className="transition hover:text-white" href="#">
+          </Link>
+          <Link className="transition hover:text-white" to="#">
             Blog
-          </a>
-          <a className="transition hover:text-white" href="#">
+          </Link>
+          <Link className="transition hover:text-white" to="#">
             Contact
-          </a>
+          </Link>
         </div>
 
-        <button className="flex cursor-pointer items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm transition hover:bg-white/20">
-          <User size={17} strokeWidth={1.5} />
-          Sign in
+        <button className="cursor-pointer items-center rounded-full bg-white/15 px-4 py-2 text-sm transition hover:bg-white/20">
+          {user ? (
+            <Link to="/dashboard" className="flex gap-1">
+              <LayoutDashboard size={17} strokeWidth={1.5} />
+              Dashboard
+            </Link>
+          ) : (
+            <Link to="/signin" className="flex gap-1">
+              <User size={17} strokeWidth={1.5} />
+              Sign in
+            </Link>
+          )}
         </button>
-
       </nav>
     </div>
   );
