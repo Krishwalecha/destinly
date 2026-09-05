@@ -7,7 +7,7 @@ const urlSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    originalUrl: {
+    longUrl: {
       type: String,
       required: true,
       trim: true,
@@ -43,8 +43,8 @@ const urlSchema = new mongoose.Schema(
     },
     maxClicks: {
       type: Number,
-      default: -1
-    }
+      default: -1,
+    },
   },
   { timestamps: true },
 );

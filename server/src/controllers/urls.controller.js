@@ -9,36 +9,26 @@ import { UAParser } from "ua-parser-js";
 
 const createShortUrl = asyncHandler(async (req, res) => {
   const { userId: user } = req.user;
-  const {
-    originalUrl,
-    expiresIn = 90,
-    customAlias,
-    maxClicks = -1,
-  } = req.body;
+  const { longUrl, expiresIn = 90, customAlias, maxClicks = -1 } = req.body;
 
-  const normalizedUrl = validateUrl(originalUrl);
+  const normalizedUrl = validateUrl(longUrl);
 
   if (!Number.isInteger(expiresIn) || expiresIn <= 0) {
     throw new ApiError(400, "Expiration Days must be a positive integer");
   }
 
   if (!Number.isInteger(maxClicks) || maxClicks < -1 || maxClicks === 0) {
-    throw new ApiError(
-      400,
-      "Max clicks must be -1 or a positive integer",
-    );
+    throw new ApiError(400, "Max clicks must be -1 or a positive integer");
   }
 
   const normalizedCustomAlias = await validateCustomAlias(customAlias);
   const shortCode = await generateShortCode();
 
-  const expiresAt = new Date(
-    Date.now() + expiresIn * 24 * 60 * 60 * 1000,
-  );
+  const expiresAt = new Date(Date.now() + expiresIn * 24 * 60 * 60 * 1000);
 
   const url = await Url.create({
     user,
-    originalUrl: normalizedUrl,
+    longUrl: normalizedUrl,
     shortCode,
     expiresIn,
     expiresAt,
@@ -86,7 +76,7 @@ const redirectUrl = asyncHandler(async (req, res) => {
 
   updateAnalytics(req, url).catch(console.error);
 
-  return res.redirect(url.originalUrl);
+  return res.redirect(url.longUrl);
 });
 
 const getUserUrls = asyncHandler(async (req, res) => {
@@ -114,7 +104,7 @@ const getUserUrls = asyncHandler(async (req, res) => {
     const escapedSearch = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
     filter.$or = [
-      { originalUrl: { $regex: escapedSearch, $options: "i" } },
+      { longUrl: { $regex: escapedSearch, $options: "i" } },
       { customAlias: { $regex: escapedSearch, $options: "i" } },
       { shortCode: { $regex: escapedSearch, $options: "i" } },
     ];
@@ -165,7 +155,7 @@ const updateUrl = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid URL ID");
   }
 
-  const { originalUrl, customAlias, expiresIn } = req.body;
+  const { longUrl, customAlias, expiresIn } = req.body;
   const url = await Url.findById(id);
 
   if (!url) {
@@ -176,8 +166,8 @@ const updateUrl = asyncHandler(async (req, res) => {
     throw new ApiError(403, "Forbidden");
   }
 
-  if (originalUrl !== undefined) {
-    url.originalUrl = validateUrl(originalUrl);
+  if (longUrl !== undefined) {
+    url.longUrl = validateUrl(longUrl);
   }
 
   if (customAlias !== undefined) {
@@ -773,7 +763,7 @@ const getUserAnalytics = asyncHandler(async (req, res) => {
               urlId: "$_id",
               clicks: 1,
               shortCode: "$url.shortCode",
-              originalUrl: "$url.originalUrl",
+              longUrl: "$url.longUrl",
               customAlias: "$url.customAlias",
             },
           },
@@ -800,7 +790,7 @@ const getUserAnalytics = asyncHandler(async (req, res) => {
 
 const validateUrl = (url) => {
   if (!url?.trim()) {
-    throw new ApiError(400, "Original URL is required");
+    throw new ApiError(400, "Long URL is required");
   }
 
   let normalizedUrl = url.trim();
@@ -813,13 +803,32 @@ const validateUrl = (url) => {
     const parsedUrl = new URL(normalizedUrl);
 
     if (!["http:", "https:"].includes(parsedUrl.protocol)) {
-      throw new Error();
+      throw new ApiError(400, "Only HTTP and HTTPS URLs are allowed");
     }
-  } catch {
-    throw new ApiError(400, "Invalid URL");
-  }
 
-  return normalizedUrl;
+    const hostname = parsedUrl.hostname;
+
+    // Must contain a real domain structure.
+    if (!hostname.includes(".")) {
+      throw new ApiError(400, "Please enter a valid URL");
+    }
+
+    // Validate domain labels.
+    const domainRegex =
+      /^(?=.{1,253}$)([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
+
+    if (!domainRegex.test(hostname)) {
+      throw new ApiError(400, "Please enter a valid URL");
+    }
+
+    return parsedUrl.toString();
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+
+    throw new ApiError(400, "Please enter a valid URL");
+  }
 };
 
 const validateCustomAlias = async (alias, currentUrlId = null) => {
