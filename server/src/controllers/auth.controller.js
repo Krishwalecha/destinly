@@ -5,7 +5,7 @@ import { User } from "../models/user.model.js";
 
 const options = {
   httpOnly: true,
-  secure: true,
+  secure: process.env.NODE_ENV === "production",
   sameSite: "lax",
 };
 
@@ -97,6 +97,29 @@ const loginUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, userObj, "User logged in successfully"));
 });
 
+const getUserInfo = asyncHandler(async (req, res) => {
+  const { userId } = req.user;
+
+  if (!userId) {
+    throw new ApiError(400, "User not found");
+  }
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new ApiError(400, "User not found");
+  }
+
+  const userObj = user.toObject();
+
+  delete userObj.password;
+  delete userObj.refreshToken;
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, userObj, "User info retrieved successfully"));
+});
+
 const logoutUser = asyncHandler(async (req, res) => {
   const { userId } = req.user;
 
@@ -161,4 +184,4 @@ const generateTokens = (user) => {
   };
 };
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken };
+export { registerUser, loginUser, logoutUser, refreshAccessToken, getUserInfo };

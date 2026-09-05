@@ -4,6 +4,7 @@ import {
   loginUser,
   logoutUser,
   refreshAccessToken,
+  getUserInfo,
 } from "../controllers/auth.controller.js";
 import {
   verifyJWT,
@@ -16,5 +17,6 @@ authRouter.post("/register", registerUser);
 authRouter.post("/login", loginUser);
 authRouter.post("/logout", verifyJWT, logoutUser);
 authRouter.post("/refresh", verifyRefreshToken, refreshAccessToken);
+authRouter.get("/me", verifyJWT, getUserInfo);
 
 export default authRouter;
