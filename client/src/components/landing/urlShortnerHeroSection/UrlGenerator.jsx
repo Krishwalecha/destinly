@@ -7,13 +7,48 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { toast } from "sonner";
+import Loader from "@/components/Loader";
 
-const UrlGenerator = () => {
+const API_SERVER = import.meta.env.VITE_API_SERVER;
+
+const UrlGenerator = ({ setShortened }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [expiresIn, setExpiresIn] = useState(90);
   const [maxClicks, setMaxClicks] = useState(-1);
-  const [originalUrl, setOriginalUrl] = useState("");
+  const [longUrl, setLongUrl] = useState("");
   const [customAlias, setCustomAlias] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const shortenUrl = async () => {
+    if (!longUrl) {
+      toast.error("Long URL is required");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await axios.post(
+        `${API_SERVER}/urls`,
+        {
+          longUrl,
+          customAlias,
+          expiresIn,
+          maxClicks,
+        },
+        {
+          withCredentials: true,
+        },
+      );
+
+      if (res.data?.data) setShortened(res.data?.data);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const changeValue = (setter, value, min) => {
     setter((prev) => Math.max(min, prev + value));
@@ -30,16 +65,19 @@ const UrlGenerator = () => {
             type="url"
             placeholder="Paste your long URL"
             className="w-full min-w-0 bg-transparent text-white outline-none placeholder:text-white/50"
-            value={originalUrl}
+            value={longUrl}
             onChange={(e) => {
-              setOriginalUrl(e.target.value);
+              setLongUrl(e.target.value);
             }}
           />
         </div>
 
-        <button className="flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-white px-5 py-3 font-medium text-[#3262DA] transition hover:bg-white/90">
-          Shorten Link
-          <ArrowRight size={17} strokeWidth={1.5} />
+        <button
+          className="flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-white px-5 py-3 font-medium text-[#3262DA] transition hover:bg-white/90"
+          onClick={() => shortenUrl()}
+        >
+          {loading ? <Loader /> : "Shorten Link"}
+          {!loading ? <ArrowRight size={17} strokeWidth={1.5} /> : null}
         </button>
       </div>
 
@@ -148,7 +186,6 @@ const UrlGenerator = () => {
         </div>
       )}
 
-      {/* Bottom row */}
       {/* Bottom row */}
       <div className="mt-4 flex flex-col gap-3 border-t border-white/10 pt-3 md:flex-row md:items-center md:justify-between md:border-t-0 md:pt-0">
         <div className="flex items-center gap-2 text-left text-xs leading-normal text-white/60 sm:text-sm">
